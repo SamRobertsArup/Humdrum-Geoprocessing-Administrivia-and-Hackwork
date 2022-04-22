@@ -1,0 +1,39 @@
+def getDataWMS(wms=None, bbox=None, crs=None):
+    doc = '''
+    fetches and vectorises WMS data
+
+    :param wms: web map service
+    :param bbox: [south Latitude, north Latitude, west Longitude, east Longitude]
+    :param crs: must be offered by wms
+    :return: vectorised WMS data
+    '''
+    returnGEOJSON = True
+    if request.method == "POST":
+        if wms is None or bbox is None or crs is None:
+            body = request.get_json()
+            wms = body['wms']
+            bbox = body['bbox']
+            crs = body['crs']
+        returnGEOJSON = False
+        print(f"fetching {wms['name']}")
+        url = wms['endpoint'] + '?' + wms['layer']['params']
+        url += '&LAYERS=' + wms['layer']['id']
+        url += '&CRS=' + crs
+        url += '&BBOX=' + ",".join([str(b) for b in list(bbox)])
+        res = requests.get(url)
+        with MemoryFile(res.content) as memfile:
+            with memfile.open() as ds:
+                xy = ds.read()
+                rgb = np.zeros((xy.shape[1], xy.shape[2]), dtype=np.int32)
+                for x in range(0, xy.shape[1]):
+                    for y in range(0, xy.shape[2]):
+                        rgb[x][y] = int("".join(str(xy[z][x][y]) for z in range(0, xy.shape[0]-1)))
+                shapes, values = zip(*[(shape, int(val)) for shape, val in rasterio.features.shapes(source=rgb, mask=ds.dataset_mask(), transform=ds.transform)])
+                shapes = [shape(shp) for shp in shapes]
+                vectorised = {'data': gpd.GeoDataFrame(geometry=shapes, data={"values": values}).set_crs(crs), 'col': 'values'}
+        print(f"feature count: {vectorised['data'].shape[0]}")
+        if returnGEOJSON:
+            return vectorised['data'].to_json()
+        return vectorised
+    else:
+        return doc.replace("\n", "<br>")
