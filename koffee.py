@@ -25,5 +25,5 @@ while True:
         minsIdle = 0
         
     if str(datetime.datetime.now().strftime("%H:%M")) == val:  #"17:30":
-        print("works over!!")
+        print("Shutting down...")
         os.system("shutdown -s")
