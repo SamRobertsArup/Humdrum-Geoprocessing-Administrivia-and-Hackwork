@@ -3,7 +3,7 @@ import datetime
 import time
 import os
 
-print("Koffee keeps your computer awake whilst you sleep")
+print("Koffee keeps your computer awake whilst you sleep, handy for overnight scripts")
 
 cmd = 'mode 30,10'
 os.system(cmd)
