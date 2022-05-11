@@ -3,9 +3,10 @@ import datetime
 import time
 import os
 
+print("Koffee keeps your computer awake whilst you sleep")
+
 cmd = 'mode 30,10'
 os.system(cmd)
-print("Koffee keeps your computer awake whilst you sleep")
 val = input("Enter shutdown'o'clock? (hh:mm)\n")
 minsIdle = 0
 
